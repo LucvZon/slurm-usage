@@ -144,20 +144,20 @@ The following commands are available:
  SLURM Job Monitor - Collect and analyze job efficiency metrics
 
 
-╭─ Options ────────────────────────────────────────────────────────────────────╮
-│ --install-completion          Install completion for the current shell.      │
-│ --show-completion             Show completion for the current shell, to copy │
-│                               it or customize the installation.              │
-│ --help                        Show this message and exit.                    │
-╰──────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────────────────────╮
-│ collect   Collect job data from SLURM using parallel date-based queries.     │
-│ analyze   Analyze collected job data.                                        │
-│ status    Show monitoring system status.                                     │
-│ current   Display current cluster usage statistics from squeue.              │
-│ nodes     Display node information from SLURM.                               │
-│ test      Run a quick test of the system.                                    │
-╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ──────────────────────────────────────────────────────────────────────────────╮
+│ --install-completion          Install completion for the current shell.                │
+│ --show-completion             Show completion for the current shell, to copy it or     │
+│                               customize the installation.                              │
+│ --help                        Show this message and exit.                              │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ─────────────────────────────────────────────────────────────────────────────╮
+│ collect   Collect job data from SLURM using parallel date-based queries.               │
+│ analyze   Analyze collected job data.                                                  │
+│ status    Show monitoring system status.                                               │
+│ current   Display current cluster usage statistics from squeue.                        │
+│ nodes     Display node information from SLURM.                                         │
+│ test      Run a quick test of the system.                                              │
+╰────────────────────────────────────────────────────────────────────────────────────────╯
 
 ```
 
