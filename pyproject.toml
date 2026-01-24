@@ -26,7 +26,7 @@ Homepage = "https://github.com/basnijholt/slurm-usage"
 
 [project.optional-dependencies]
 test = ["pytest", "pre-commit", "coverage", "pytest-cov"]
-docs = []
+docs = ["zensical", "markdown-gfm-admonition", "markdown-code-runner"]
 
 [project.scripts]
 slurm-usage = "slurm_usage:app"
@@ -108,4 +108,9 @@ dev = [
     "markdown-code-runner>=2.3.0",
     "pytest>=7.4.4",
     "pytest-cov>=4.1.0",
+]
+docs = [
+    "zensical",
+    "markdown-gfm-admonition",
+    "markdown-code-runner",
 ]
