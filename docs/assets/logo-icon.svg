@@ -6,18 +6,43 @@
     </linearGradient>
   </defs>
 
+  <style>
+    @keyframes ring-progress {
+      0%, 100% { stroke-dasharray: 185 264; }
+      25% { stroke-dasharray: 212 264; }
+      50% { stroke-dasharray: 158 264; }
+      75% { stroke-dasharray: 198 264; }
+    }
+    @keyframes bar1 {
+      0%, 100% { height: 18px; y: 54px; }
+      50% { height: 26px; y: 46px; }
+    }
+    @keyframes bar2 {
+      0%, 100% { height: 28px; y: 44px; }
+      50% { height: 20px; y: 52px; }
+    }
+    @keyframes bar3 {
+      0%, 100% { height: 22px; y: 50px; }
+      50% { height: 30px; y: 42px; }
+    }
+    .ring-animated { animation: ring-progress 4s ease-in-out infinite; }
+    .bar1 { animation: bar1 3s ease-in-out infinite; }
+    .bar2 { animation: bar2 3.5s ease-in-out infinite; }
+    .bar3 { animation: bar3 2.8s ease-in-out infinite; }
+  </style>
+
   <!-- Outer ring (background) -->
   <circle cx="50" cy="50" r="42" fill="none" stroke="#E5E7EB" stroke-width="10"/>
 
-  <!-- Usage arc (showing ~70% efficiency) -->
-  <circle cx="50" cy="50" r="42" fill="none" stroke="url(#ringGradient)" stroke-width="10"
+  <!-- Usage arc (animated) -->
+  <circle class="ring-animated" cx="50" cy="50" r="42" fill="none" stroke="url(#ringGradient)" stroke-width="10"
           stroke-dasharray="185 264" stroke-dashoffset="-40" stroke-linecap="round"/>
 
   <!-- Center display -->
   <circle cx="50" cy="50" r="28" fill="#F8FAFC"/>
 
-  <!-- Bar chart in center -->
-  <rect x="30" y="52" width="10" height="22" rx="2" fill="#10B981"/>
-  <rect x="45" y="38" width="10" height="36" rx="2" fill="#3B82F6"/>
-  <rect x="60" y="46" width="10" height="28" rx="2" fill="#8B5CF6"/>
+  <!-- Bar chart in center (moved inward) -->
+  <rect class="bar1" x="34" y="54" width="8" height="18" rx="2" fill="#10B981"/>
+  <rect class="bar2" x="46" y="44" width="8" height="28" rx="2" fill="#3B82F6"/>
+  <rect class="bar3" x="58" y="50" width="8" height="22" rx="2" fill="#8B5CF6"/>
 </svg>
