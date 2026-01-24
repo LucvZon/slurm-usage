@@ -486,6 +486,7 @@ crontab -e
 
 <!-- OUTPUT:END -->
 
+<!-- SECTION:performance-optimizations:START -->
 ## Performance Optimizations
 
 - **Date completion tracking**: Dates with only finished jobs are marked complete and skipped
@@ -493,7 +494,9 @@ crontab -e
 - **Smart merging**: Only updates changed jobs when re-collecting
 - **Efficient storage**: Parquet format provides ~10x compression over CSV
 - **Date-based partitioning**: Data organized by date for efficient queries
+<!-- SECTION:performance-optimizations:END -->
 
+<!-- SECTION:important-notes:START -->
 ## Important Notes
 
 1. **30-day window**: SLURM purges detailed metrics after 30 days. Run collection at least weekly to ensure no data is lost.
@@ -505,6 +508,7 @@ crontab -e
 4. **GPU tracking**: GPU allocation is extracted from the AllocTRES field.
 
 5. **Raw data archival**: Raw SLURM records are preserved in case reprocessing is needed.
+<!-- SECTION:important-notes:END -->
 
 ## Post-Processing with Polars
 
