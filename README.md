@@ -71,6 +71,7 @@ SLURM's accounting database purges detailed job metrics (CPU usage, memory usage
 - [Important Notes](#important-notes)
 - [Post-Processing with Polars](#post-processing-with-polars)
 - [Troubleshooting](#troubleshooting)
+- [Support](#support)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
