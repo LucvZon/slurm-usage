@@ -14,29 +14,21 @@
       75% { stroke-dasharray: 180 240; }
     }
     @keyframes bar1 {
-      0%, 100% { height: 16px; y: 54px; }
-      50% { height: 22px; y: 48px; }
+      0%, 100% { height: 20px; y: 40px; }
+      50% { height: 28px; y: 32px; }
     }
     @keyframes bar2 {
-      0%, 100% { height: 24px; y: 46px; }
-      50% { height: 18px; y: 52px; }
+      0%, 100% { height: 30px; y: 35px; }
+      50% { height: 22px; y: 43px; }
     }
     @keyframes bar3 {
-      0%, 100% { height: 20px; y: 50px; }
-      50% { height: 26px; y: 44px; }
-    }
-    @keyframes percent-cycle {
-      0%, 20% { opacity: 1; }
-      25%, 100% { opacity: 0; }
+      0%, 100% { height: 24px; y: 38px; }
+      50% { height: 32px; y: 30px; }
     }
     .ring-animated { animation: ring-progress 4s ease-in-out infinite; }
     .bar1 { animation: bar1 3s ease-in-out infinite; }
     .bar2 { animation: bar2 3.5s ease-in-out infinite; }
     .bar3 { animation: bar3 2.8s ease-in-out infinite; }
-    .p1 { animation: percent-cycle 8s infinite; animation-delay: 0s; }
-    .p2 { animation: percent-cycle 8s infinite; animation-delay: 2s; }
-    .p3 { animation: percent-cycle 8s infinite; animation-delay: 4s; }
-    .p4 { animation: percent-cycle 8s infinite; animation-delay: 6s; }
   </style>
 
   <!-- Outer ring (background) -->
@@ -49,19 +41,10 @@
   <!-- Center display -->
   <circle cx="50" cy="50" r="26" fill="#F8FAFC"/>
 
-  <!-- Percentage circle background -->
-  <circle cx="50" cy="34" r="10" fill="#EFF6FF" stroke="#BFDBFE" stroke-width="1"/>
-
-  <!-- Animated percentage text -->
-  <text class="p1" x="50" y="37" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="700" fill="#1E40AF">70%</text>
-  <text class="p2" x="50" y="37" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="700" fill="#1E40AF">82%</text>
-  <text class="p3" x="50" y="37" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="700" fill="#1E40AF">65%</text>
-  <text class="p4" x="50" y="37" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="700" fill="#1E40AF">78%</text>
-
-  <!-- Bar chart in center (moved inward) -->
-  <rect class="bar1" x="36" y="54" width="7" height="16" rx="2" fill="#10B981"/>
-  <rect class="bar2" x="46" y="46" width="7" height="24" rx="2" fill="#3B82F6"/>
-  <rect class="bar3" x="56" y="50" width="7" height="20" rx="2" fill="#8B5CF6"/>
+  <!-- Bar chart in center (centered) -->
+  <rect class="bar1" x="36" y="40" width="7" height="20" rx="2" fill="#10B981"/>
+  <rect class="bar2" x="46" y="35" width="7" height="30" rx="2" fill="#3B82F6"/>
+  <rect class="bar3" x="56" y="38" width="7" height="24" rx="2" fill="#8B5CF6"/>
 
   <!-- Text "slurm-usage" -->
   <text x="50" y="110" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="600" fill="#3B82F6">slurm-usage</text>
