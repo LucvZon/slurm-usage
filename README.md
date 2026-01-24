@@ -1,11 +1,25 @@
 # SLURM Usage Monitor
 
+[![PyPI](https://img.shields.io/pypi/v/slurm-usage.svg)](https://pypi.python.org/pypi/slurm-usage)
+[![Build Status](https://github.com/basnijholt/slurm-usage/actions/workflows/pytest-uv.yml/badge.svg)](https://github.com/basnijholt/slurm-usage/actions/workflows/pytest-uv.yml)
+[![Documentation](https://img.shields.io/badge/docs-slurm--usage.nijho.lt-blue)](https://slurm-usage.nijho.lt)
+
+<!-- SECTION:intro:START -->
+<img src="https://raw.githubusercontent.com/basnijholt/slurm-usage/main/docs/assets/logo.svg" alt="slurm-usage Logo" align="right" style="width: 150px;" />
+
 A high-performance monitoring system that collects and analyzes SLURM job efficiency metrics, optimized for large-scale HPC environments.
 
+> [!TIP]
+> SLURM purges detailed metrics after 30 days. Run `slurm-usage collect` to preserve your data!
+<!-- SECTION:intro:END -->
+
+<!-- SECTION:purpose:START -->
 ## Purpose
 
 SLURM's accounting database purges detailed job metrics (CPU usage, memory usage) after 30 days. This tool captures and preserves that data in efficient Parquet format for long-term analysis of resource utilization patterns.
+<!-- SECTION:purpose:END -->
 
+<!-- SECTION:features:START -->
 ## Key Features
 
 - 📊 **Captures comprehensive efficiency metrics** from all job states
@@ -17,9 +31,11 @@ SLURM's accounting database purges detailed job metrics (CPU usage, memory usage
 - ⚡ **Parallel collection** - multi-threaded data collection by default
 - ⏰ **Cron-ready** - designed for automated daily collection
 - 🎯 **Intelligent re-collection** - only re-fetches incomplete job states
+<!-- SECTION:features:END -->
 
+## Table of Contents
 
-<details><summary>Table of Contents</summary>
+<details><summary>Click to expand</summary>
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
@@ -55,12 +71,14 @@ SLURM's accounting database purges detailed job metrics (CPU usage, memory usage
 - [Important Notes](#important-notes)
 - [Post-Processing with Polars](#post-processing-with-polars)
 - [Troubleshooting](#troubleshooting)
+- [Support](#support)
 - [License](#license)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 </details>
 
+<!-- SECTION:what-it-collects:START -->
 ## What It Collects
 
 For each job:
@@ -75,7 +93,9 @@ For each job:
   - CPU hours wasted
   - Memory GB-hours wasted
   - Total reserved resources (CPU/GPU/memory hours)
+<!-- SECTION:what-it-collects:END -->
 
+<!-- SECTION:requirements:START -->
 ## Requirements
 
 - **uv** - Python package and project manager (will auto-install dependencies)
@@ -83,7 +103,9 @@ For each job:
 - **sacct** command access
 
 That's it! The script uses `uv` inline script dependencies, so all Python packages are automatically installed when you run the script.
+<!-- SECTION:requirements:END -->
 
+<!-- SECTION:installation:START -->
 ## Installation
 
 ### Quick Start (no installation needed)
@@ -122,7 +144,9 @@ cd slurm-usage
 # Or with Python
 python slurm_usage.py --help
 ```
+<!-- SECTION:installation:END -->
 
+<!-- SECTION:usage:START -->
 ## Usage
 
 ### CLI Commands
@@ -221,6 +245,9 @@ Shows information about cluster nodes including CPU and GPU counts.
 
 #### `test` - Test system configuration
 
+<!-- SECTION:usage:END -->
+
+<!-- SECTION:output-structure:START -->
 ## Output Structure
 
 ### Data Organization
@@ -259,7 +286,9 @@ data/
 │ cluster-2  │  198 │   41,234  │    1,536  │   67.1%   │
 └────────────┴──────┴───────────┴───────────┴───────────┘
 ```
+<!-- SECTION:output-structure:END -->
 
+<!-- SECTION:smart-recollection:START -->
 ## Smart Re-collection
 
 The monitor intelligently handles job state transitions:
@@ -276,7 +305,9 @@ The following job states indicate a job may change and will trigger re-collectio
 - Transitional: `COMPLETING`, `CONFIGURING`, `STAGE_OUT`, `SIGNALING`
 - Requeue: `REQUEUED`, `REQUEUE_FED`, `REQUEUE_HOLD`
 - Other: `RESIZING`, `REVOKED`, `SPECIAL_EXIT`
+<!-- SECTION:smart-recollection:END -->
 
+<!-- SECTION:configuration:START -->
 ## Group Configuration
 
 Create a configuration file to define your organization's research groups and optionally specify the data directory. The configuration file is searched in the following locations:
@@ -347,7 +378,9 @@ groups:
 ```
 
 <!-- OUTPUT:END -->
+<!-- SECTION:configuration:END -->
 
+<!-- SECTION:automated-collection:START -->
 ## Automated Collection
 
 ### Using Cron
@@ -362,6 +395,7 @@ crontab -e
 # Or if running from source:
 0 2 * * * /path/to/slurm-usage/slurm_usage.py collect --days 2
 ```
+<!-- SECTION:automated-collection:END -->
 
 ## Data Schema
 
@@ -519,6 +553,7 @@ else:
 
 <!-- OUTPUT:END -->
 
+<!-- SECTION:troubleshooting:START -->
 ## Troubleshooting
 
 **No efficiency data?**
@@ -540,7 +575,18 @@ else:
 
 - Ensure `uv` is installed: `curl -LsSf https://astral.sh/uv/install.sh | sh`
 - Check SLURM access: `slurm-usage test` (or `./slurm_usage.py test` if running from source)
+<!-- SECTION:troubleshooting:END -->
+
+<!-- SECTION:support:START -->
+## Support
+
+We appreciate your feedback and contributions! If you encounter any issues or have suggestions for improvements, please file an issue on the [GitHub repository](https://github.com/basnijholt/slurm-usage/issues). We also welcome pull requests for bug fixes or new features.
+<!-- SECTION:support:END -->
 
 ## License
 
 MIT
+
+---
+
+Give `slurm-usage` a try today and start preserving your HPC job efficiency data!
