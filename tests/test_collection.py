@@ -202,7 +202,7 @@ class TestDataCollection:
             # May get fewer records due to incremental filtering
             assert len(raw2) <= len(raw1)
 
-    def test_load_recent_data(self, tmp_path: Path, test_dates: dict[str, str], mock_datetime_now: MagicMock) -> None:  # noqa: ARG002
+    def test_load_data_for_date_range(self, tmp_path: Path, test_dates: dict[str, str], mock_datetime_now: MagicMock) -> None:  # noqa: ARG002
         """Test loading recent data from multiple days."""
         config = slurm_usage.Config.create(data_dir=tmp_path)
         config.ensure_directories_exist()
@@ -210,8 +210,8 @@ class TestDataCollection:
         # Create test data for multiple days
         base_date = datetime.fromisoformat(f"{test_dates['today']}T00:00:00+00:00")
         for i in range(3):
-            date = base_date - timedelta(days=i)
-            date_str = date.strftime("%Y-%m-%d")
+            date_obj = base_date - timedelta(days=i)
+            date_str = date_obj.strftime("%Y-%m-%d")
 
             # Create processed data
             test_data = [
@@ -234,12 +234,14 @@ class TestDataCollection:
             df.write_parquet(file_path)
 
         # Test loading
-        result = slurm_usage._load_recent_data(config, days=2, data_type="processed")
+        end_d = base_date.date()
+        start_d = end_d - timedelta(days=2)
+        result = slurm_usage._load_data_for_date_range(config, start_date=start_d, end_date=end_d, data_type="processed")
         assert result is not None
         expected_jobs = 6  # 2 jobs * 3 days (today, yesterday, day before)
         assert len(result) == expected_jobs
 
-    def test_load_recent_data_raw(self, tmp_path: Path, test_dates: dict[str, str], mock_datetime_now: MagicMock) -> None:  # noqa: ARG002
+    def test_load_data_for_date_range_raw(self, tmp_path: Path, test_dates: dict[str, str], mock_datetime_now: MagicMock) -> None:  # noqa: ARG002
         """Test loading recent raw data."""
         config = slurm_usage.Config.create(data_dir=tmp_path)
         config.ensure_directories_exist()
@@ -260,20 +262,22 @@ class TestDataCollection:
         df.write_parquet(file_path)
 
         # Test loading raw data
-        result = slurm_usage._load_recent_data(config, days=0, data_type="raw")
+        target_date = datetime.fromisoformat(test_dates["today"]).date()
+        result = slurm_usage._load_data_for_date_range(config, start_date=target_date, end_date=target_date, data_type="raw")
         assert result is not None
         expected_records = 3
         assert len(result) == expected_records
 
-    def test_load_recent_data_empty(self, tmp_path: Path) -> None:
+    def test_load_data_for_date_range_empty(self, tmp_path: Path) -> None:
         """Test loading when no data exists."""
         config = slurm_usage.Config.create(data_dir=tmp_path)
         config.ensure_directories_exist()
 
-        result = slurm_usage._load_recent_data(config, days=7)
+        today = datetime.now(timezone.utc).date()
+        result = slurm_usage._load_data_for_date_range(config, start_date=today - timedelta(days=7), end_date=today)
         assert result is None
 
-    def test_load_recent_data_corrupted(self, tmp_path: Path, test_dates: dict[str, str]) -> None:
+    def test_load_data_for_date_range_corrupted(self, tmp_path: Path, test_dates: dict[str, str]) -> None:
         """Test loading with corrupted parquet files."""
         config = slurm_usage.Config.create(data_dir=tmp_path)
         config.ensure_directories_exist()
@@ -284,7 +288,8 @@ class TestDataCollection:
         file_path.write_text("corrupted data")
 
         # Should handle gracefully
-        result = slurm_usage._load_recent_data(config, days=0)
+        target_date = datetime.fromisoformat(test_dates["today"]).date()
+        result = slurm_usage._load_data_for_date_range(config, start_date=target_date, end_date=target_date)
         assert result is None or len(result) == 0
 
 

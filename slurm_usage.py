@@ -28,7 +28,7 @@ import types
 import typing
 from collections import defaultdict
 from concurrent.futures import ThreadPoolExecutor, as_completed
-from datetime import datetime, timedelta, timezone
+from datetime import date, datetime, timedelta, timezone
 from getpass import getuser
 from pathlib import Path
 from typing import Annotated, Any, NamedTuple
@@ -1163,16 +1163,48 @@ def _load_raw_records_from_parquet(raw_file: Path, date_str: str) -> list[RawJob
         return raw_records
 
 
-def _load_recent_data(
+def _resolve_date_range(
+    days: int | None,
+    start_date: datetime | None,
+    end_date: datetime | None,
+    default_days: int,
+) -> tuple[date, date]:
+    """Resolve start and end dates from CLI arguments."""
+    today = datetime.now(UTC).date()
+
+    if start_date and end_date:
+        s, e = start_date.date(), end_date.date()
+    elif start_date and days is not None:
+        s, e = start_date.date(), start_date.date() + timedelta(days=days)
+    elif end_date and days is not None:
+        s, e = end_date.date() - timedelta(days=days), end_date.date()
+    elif start_date:
+        s, e = start_date.date(), today
+    elif end_date:
+        s, e = end_date.date() - timedelta(days=default_days), end_date.date()
+    else:
+        d = days if days is not None else default_days
+        s, e = today - timedelta(days=d), today
+
+    # Ensure start date is before end date
+    if s > e:
+        s, e = e, s
+        
+    return s, e
+
+
+def _load_data_for_date_range(
     config: Config,
-    days: int,
+    start_date: date,
+    end_date: date,
     data_type: str = "processed",
 ) -> pl.DataFrame | None:
-    """Load recent data files efficiently from daily directories.
+    """Load data files efficiently from daily directories for a date range.
 
     Args:
         config: Configuration object
-        days: Number of days to look back
+        start_date: Start date of the range
+        end_date: End date of the range
         data_type: "processed" or "raw" to specify which data to load
 
     """
@@ -1182,17 +1214,17 @@ def _load_recent_data(
     if not base_dir.exists():
         return None
 
-    end_date = datetime.now(UTC)
-
     # Find all parquet files in date range
     parquet_files: list[Path] = []
-    for day_offset in range(days + 1):
-        check_date = end_date - timedelta(days=day_offset)
-        date_str = check_date.strftime("%Y-%m-%d")
+    current_date = start_date
+    while current_date <= end_date:
+        date_str = current_date.strftime("%Y-%m-%d")
         file_path = base_dir / f"{date_str}.parquet"
 
         if file_path.exists():
             parquet_files.append(file_path)
+        
+        current_date += timedelta(days=1)
 
     if not parquet_files:
         return None
@@ -2382,7 +2414,9 @@ def _create_daily_usage_chart(df: pl.DataFrame) -> None:
 
 @app.command()
 def collect(  # noqa: PLR0912, PLR0915
-    days: Annotated[int, typer.Option("--days", "-d", help="Days to look back")] = 1,
+    days: Annotated[int | None, typer.Option("--days", "-d", help="Days to look back or forward from start/end date")] = None,
+    start_date: Annotated[datetime | None, typer.Option("--start-date", "-s", help="Start date (YYYY-MM-DD)", formats=["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S"])] = None,
+    end_date: Annotated[datetime | None, typer.Option("--end-date", "-e", help="End date (YYYY-MM-DD)", formats=["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S"])] = None,
     data_dir: Annotated[Path | None, typer.Option("--data-dir", help="Data directory (default: ./data)")] = None,
     show_summary: Annotated[bool, typer.Option("--summary/--no-summary", help="Show summary after collection")] = True,  # noqa: FBT002
     n_parallel: Annotated[int, typer.Option("--n-parallel", "-n", help="Number of parallel workers for date-based collection")] = 4,
@@ -2408,13 +2442,13 @@ def collect(  # noqa: PLR0912, PLR0915
     completion_tracker = DateCompletionTracker.load(tracker_file)
 
     # Get list of dates to collect
+    start_d, end_d = _resolve_date_range(days, start_date, end_date, default_days=1)
+    
     dates_to_collect = []
-    end_date = datetime.now(UTC).date()
-    for i in range(days + 1):
-        date = end_date - timedelta(days=i)
-        dates_to_collect.append(date.strftime("%Y-%m-%d"))
-
-    dates_to_collect = sorted(dates_to_collect)  # Chronological order
+    curr = start_d
+    while curr <= end_d:
+        dates_to_collect.append(curr.strftime("%Y-%m-%d"))
+        curr += timedelta(days=1)
 
     # Report how many dates are already complete
     already_complete = sum(1 for d in dates_to_collect if completion_tracker.is_complete(d))
@@ -2549,18 +2583,23 @@ def collect(  # noqa: PLR0912, PLR0915
 @app.command()
 def analyze(
     data_dir: Annotated[Path | None, typer.Option("--data-dir", help="Data directory (default: ./data)")] = None,
-    days: Annotated[int, typer.Option("--days", "-d", help="Days to analyze")] = 7,
+    days: Annotated[int | None, typer.Option("--days", "-d", help="Days to analyze")] = None,
+    start_date: Annotated[datetime | None, typer.Option("--start-date", "-s", help="Start date (YYYY-MM-DD)", formats=["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S"])] = None,
+    end_date: Annotated[datetime | None, typer.Option("--end-date", "-e", help="End date (YYYY-MM-DD)", formats=["%Y-%m-%d", "%Y-%m-%dT%H:%M:%S"])] = None,
 ) -> None:
     """Analyze collected job data."""
+    start_d, end_d = _resolve_date_range(days, start_date, end_date, default_days=7)
+    total_days = (end_d - start_d).days + 1
+    
     console.print(
         Panel.fit(
-            f"[bold cyan]Job Efficiency Analysis[/bold cyan]\nAnalyzing last {days} days",
+            f"[bold cyan]Job Efficiency Analysis[/bold cyan]\nAnalyzing {total_days} days ({start_d} to {end_d})",
             border_style="cyan",
         ),
     )
 
     config = Config.create(data_dir=data_dir)
-    df = _load_recent_data(config, days)
+    df = _load_data_for_date_range(config, start_d, end_d)
 
     if df is None or df.is_empty():
         console.print("[yellow]No data found for specified period[/yellow]")

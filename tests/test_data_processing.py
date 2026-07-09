@@ -460,8 +460,8 @@ class TestDatetimeSchemaConsistency:
         assert df["job_id"][0] == "test123"
         assert df["user"][0] == "alice"
 
-    def test_load_recent_data_handles_empty_directory(self) -> None:
-        """Test that _load_recent_data handles empty directory gracefully."""
+    def test_load_data_for_date_range_handles_empty_directory(self) -> None:
+        """Test that _load_data_for_date_range handles empty directory gracefully."""
         with tempfile.TemporaryDirectory() as tmpdir:
             config = slurm_usage.Config(
                 data_dir=Path(tmpdir),
@@ -473,5 +473,6 @@ class TestDatetimeSchemaConsistency:
             processed_dir.mkdir(parents=True, exist_ok=True)
 
             # Should return None for empty directory
-            result = slurm_usage._load_recent_data(config, days=1)
+            today = datetime.now(timezone.utc).date()
+            result = slurm_usage._load_data_for_date_range(config, start_date=today - timedelta(days=1), end_date=today)
             assert result is None
