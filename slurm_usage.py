@@ -590,9 +590,9 @@ class ProcessedJob(BaseModel):
     def from_raw_records(
         cls,
         main_job: RawJobRecord,
-        batch_job: RawJobRecord | None = None,
+        step_jobs: list[RawJobRecord] | None = None,
     ) -> ProcessedJob:
-        """Create processed job from raw records, merging batch data if available."""
+        """Create processed job from raw records, merging step data if available."""
         # Clean up the state - normalize all CANCELLED variants
         state = main_job.State
         if state.startswith("CANCELLED"):
@@ -609,17 +609,31 @@ class ProcessedJob(BaseModel):
             # Still provide a fallback but make it clear something is wrong
             user = f"uid_{main_job.UID}" if main_job.UID and main_job.UID.strip() else "MISSING_USER"
 
-        # Use batch data for actual usage if available
-        total_cpu = batch_job.TotalCPU if batch_job and batch_job.TotalCPU else main_job.TotalCPU
-        max_rss = batch_job.MaxRSS if batch_job and batch_job.MaxRSS else main_job.MaxRSS
-
         # Parse numeric values
         elapsed_seconds = _parse_int(main_job.ElapsedRaw)
         alloc_cpus = _parse_int(main_job.AllocCPUS)
         req_mem_mb = _parse_memory_mb(main_job.ReqMem)
-        max_rss_mb = _parse_memory_mb(max_rss)
-        total_cpu_seconds = _parse_cpu_seconds(total_cpu)
         alloc_gpus = _parse_gpu_count(main_job.AllocTRES)
+
+        # Extract actual usage metrics from main job
+        total_cpu_seconds = _parse_cpu_seconds(main_job.TotalCPU)
+        max_rss_mb = _parse_memory_mb(main_job.MaxRSS)
+
+        # Incorporate data from steps (like .batch, .0, .extern, etc.)
+        if step_jobs:
+            # Find the maximum MaxRSS across all steps
+            step_max_rss = max([_parse_memory_mb(step.MaxRSS) for step in step_jobs] + [0.0])
+            max_rss_mb = max(max_rss_mb, step_max_rss)
+
+            # SLURM usually aggregates TotalCPU on the main job record.
+            # However, if it's missing or 0, we can try to fall back to the sum of steps.
+            if total_cpu_seconds == 0:
+                total_cpu_seconds = sum(_parse_cpu_seconds(step.TotalCPU) for step in step_jobs)
+            else:
+                # Sometimes a step might have a slightly higher TotalCPU value
+                # (e.g., .batch step) due to SLURM reporting quirks
+                step_max_cpu = max([_parse_cpu_seconds(step.TotalCPU) for step in step_jobs] + [0.0])
+                total_cpu_seconds = max(total_cpu_seconds, step_max_cpu)
 
         # Calculate efficiency
         cpu_efficiency = 0.0
@@ -1299,23 +1313,23 @@ def _process_raw_records_into_jobs(
         Tuple of (processed jobs, is_complete flag)
 
     """
-    # Group into main and batch jobs
+    # Group into main and step jobs
     main_jobs: dict[str, RawJobRecord] = {}
-    batch_jobs: dict[str, RawJobRecord] = {}
+    step_jobs: dict[str, list[RawJobRecord]] = defaultdict(list)
 
     for record in raw_records:
-        if record.is_batch_step:
-            batch_jobs[record.job_id_base] = record
-        elif record.is_main_job:
+        if record.is_main_job:
             main_jobs[record.job_id_base] = record
+        else:
+            step_jobs[record.job_id_base].append(record)
 
     # Create processed jobs
     processed_jobs: list[ProcessedJob] = []
     has_incomplete = False
 
     for job_id, main_job in main_jobs.items():
-        batch_job = batch_jobs.get(job_id)
-        processed_job = ProcessedJob.from_raw_records(main_job, batch_job)
+        steps = step_jobs.get(job_id)
+        processed_job = ProcessedJob.from_raw_records(main_job, steps)
         processed_jobs.append(processed_job)
 
         # Check if this job is incomplete
